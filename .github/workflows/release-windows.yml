@@ -30,9 +30,13 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Configure private repo access
+        env:
+          NODE_TOKEN: ${{ secrets.NODE_TOKEN }}
         run: |
           git config --global url."https://${{ secrets.NODE_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
+          echo "[net]" >> $env:USERPROFILE\.cargo\config.toml
+          echo "git-fetch-with-cli = true" >> $env:USERPROFILE\.cargo\config.toml
+          
       - name: Build and release
         uses: tauri-apps/tauri-action@v0
         env:
