@@ -32,7 +32,7 @@ export function QRModal({ isOpen, onClose, nodeId, alias }: QRProps) {
 
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.download = `medip2p-${alias || "connection"}.png`;
+    link.download = `peerchat-${alias || "connection"}.png`;
     link.href = qrDataUrl;
     link.click();
   };

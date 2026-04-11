@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Send,
-  Search,
   QrCode,
   Check,
   CheckCheck,
@@ -54,12 +53,21 @@ function truncate(id: string) {
 }
 
 export function Dashboard() {
-  const { identity, nodes, messages, connectToNode, sendMessage, getNodeId } =
-    useP2P();
+  const {
+    identity,
+    nodes,
+    messages,
+    //connectToNode,
+    sendMessage,
+    getNodeId,
+  } = useP2P();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [
+    searchTerm,
+    // setSearchTerm
+  ] = useState("");
   const [showQR, setShowQR] = useState(false);
   const [seenSeconds, setSeenSeconds] = useState<Record<string, number>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -111,16 +119,6 @@ export function Dashboard() {
       return next;
     });
   }, [nodes]);
-
-  const handleConnect = async (targetId: string) => {
-    try {
-      await connectToNode(targetId);
-      setSelectedNode(targetId);
-      if (isMobile) setSidebarOpen(false);
-    } catch (e) {
-      console.error("Connection failed:", e);
-    }
-  };
 
   const handleSend = async () => {
     if (!messageInput.trim() || !selectedNode) return;
@@ -216,7 +214,6 @@ export function Dashboard() {
               return (
                 <div
                   key={node.endpoint_id}
-                  onClick={() => handleConnect(node.endpoint_id)}
                   style={{
                     ...s.nodeItem,
                     opacity: seen.stale ? 0.35 : 1,
