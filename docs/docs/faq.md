@@ -10,7 +10,7 @@ No. There is no peerChat server. Ever.
 
 ## Is it free?
 
-The desktop app is free and open source under AGPL-3.0. Mobile apps and commercial licensing are coming.
+The desktop app is free and under AGPL-3.0. Mobile apps and commercial licensing are coming.
 
 ## Where is my data stored?
 

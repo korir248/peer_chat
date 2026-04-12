@@ -1,6 +1,6 @@
 # Contributing
 
-peerChat is open source under AGPL-3.0.
+peerChat is under AGPL-3.0.
 
 ## Repo
 

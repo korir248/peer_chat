@@ -69,7 +69,6 @@ Get the latest Windows release from [Releases](https://github.com/korir248/peer_
 - **Low-infrastructure environments** — works where internet is unreliable or unavailable
 - **Local networks** — offices, schools, events, LAN parties
 - **Censorship-resistant communication** — no central point to block
-- **Developers** — open source, built in Rust and Tauri
 
 ## Built With
 
