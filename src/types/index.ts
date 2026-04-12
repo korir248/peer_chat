@@ -9,7 +9,7 @@ export interface Message {
 export interface Node {
   endpoint_id: string;
   last_updated: number | null;
-  alias?: string;
+  alias: string | null;
 }
 
 export interface Identity {

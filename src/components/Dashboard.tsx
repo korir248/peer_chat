@@ -11,20 +11,6 @@ import {
 import { useP2P } from "../hooks/useP2P";
 import { QRModal } from "./QRModal";
 
-type ColorKey = "warning" | "success" | "danger" | "info";
-
-const NODE_COLORS: Record<ColorKey, { bg: string; text: string }> = {
-  warning: { bg: "#fef3c7", text: "#92400e" },
-  success: { bg: "#d1fae5", text: "#065f46" },
-  danger: { bg: "#fee2e2", text: "#991b1b" },
-  info: { bg: "#dbeafe", text: "#1e40af" },
-};
-
-function getNodeColor(index: number): ColorKey {
-  const keys = Object.keys(NODE_COLORS) as ColorKey[];
-  return keys[index % keys.length];
-}
-
 function formatSeen(seconds: number): {
   label: string;
   fresh: boolean;
@@ -53,21 +39,11 @@ function truncate(id: string) {
 }
 
 export function Dashboard() {
-  const {
-    identity,
-    nodes,
-    messages,
-    //connectToNode,
-    sendMessage,
-    getNodeId,
-  } = useP2P();
+  const { identity, nodes, messages, sendMessage, getNodeId } = useP2P();
 
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
-  const [
-    searchTerm,
-    // setSearchTerm
-  ] = useState("");
+  const [searchTerm] = useState("");
   const [showQR, setShowQR] = useState(false);
   const [seenSeconds, setSeenSeconds] = useState<Record<string, number>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -76,7 +52,6 @@ export function Dashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nodeId = getNodeId();
 
-  // Check if mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -95,7 +70,6 @@ export function Dashboard() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, selectedNode]);
 
-  // Tick "last seen" counters
   useEffect(() => {
     const interval = setInterval(() => {
       setSeenSeconds((prev) => {
@@ -109,7 +83,6 @@ export function Dashboard() {
     return () => clearInterval(interval);
   }, [nodes]);
 
-  // Reset counter when a node is (re)discovered
   useEffect(() => {
     setSeenSeconds((prev) => {
       const next = { ...prev };
@@ -147,15 +120,7 @@ export function Dashboard() {
     messages.filter((m) => m.from === nid && !m.read).length;
 
   const selectedNodeData = nodes.find((n) => n.endpoint_id === selectedNode);
-  const selectedNodeIndex = nodes.findIndex(
-    (n) => n.endpoint_id === selectedNode,
-  );
-  const selectedColor =
-    selectedNodeIndex >= 0
-      ? NODE_COLORS[getNodeColor(selectedNodeIndex)]
-      : NODE_COLORS.info;
 
-  // Mobile: Show overlay sidebar when open
   if (isMobile && sidebarOpen) {
     return (
       <>
@@ -163,7 +128,7 @@ export function Dashboard() {
         <div style={s.mobileSidebar}>
           <div style={s.sidebarTop}>
             <div style={s.meRow}>
-              <div style={{ ...s.avatar, ...NODE_COLORS.info }}>
+              <div style={s.avatar}>
                 {identity?.alias?.[0]?.toUpperCase() ?? "?"}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -185,15 +150,6 @@ export function Dashboard() {
                 <X size={16} />
               </button>
             </div>
-            {/* <div style={s.searchWrap}>
-              <Search style={s.searchIcon} size={14} />
-              <input
-                placeholder="Search nodes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={s.searchInput}
-              />
-            </div> */}
           </div>
 
           <div style={s.sectionRow}>
@@ -205,21 +161,24 @@ export function Dashboard() {
           </div>
 
           <div style={s.nodeList}>
-            {filteredNodes.map((node, i) => {
+            {filteredNodes.map((node) => {
               const unread = unreadCount(node.endpoint_id);
               const secs = seenSeconds[node.endpoint_id] ?? 0;
               const seen = formatSeen(secs);
-              const color = NODE_COLORS[getNodeColor(i)];
 
               return (
                 <div
                   key={node.endpoint_id}
+                  onClick={() => {
+                    setSelectedNode(node.endpoint_id);
+                    setSidebarOpen(false);
+                  }}
                   style={{
                     ...s.nodeItem,
                     opacity: seen.stale ? 0.35 : 1,
                   }}
                 >
-                  <div style={{ ...s.nodeAv, ...color }}>
+                  <div style={s.nodeAv}>
                     {node.alias?.[0]?.toUpperCase() ??
                       node.endpoint_id.slice(0, 2).toUpperCase()}
                   </div>
@@ -256,7 +215,6 @@ export function Dashboard() {
     );
   }
 
-  // Main view (desktop or mobile with chat open)
   return (
     <div style={s.app}>
       <QRModal
@@ -266,12 +224,11 @@ export function Dashboard() {
         alias={identity?.alias}
       />
 
-      {/* Desktop Sidebar */}
       {!isMobile && (
         <div style={s.sidebar}>
           <div style={s.sidebarTop}>
             <div style={s.meRow}>
-              <div style={{ ...s.avatar, ...NODE_COLORS.info }}>
+              <div style={s.avatar}>
                 {identity?.alias?.[0]?.toUpperCase() ?? "?"}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -286,15 +243,6 @@ export function Dashboard() {
                 <QrCode size={14} />
               </button>
             </div>
-            {/* <div style={s.searchWrap}>
-              <Search style={s.searchIcon} size={13} />
-              <input
-                placeholder="Search nodes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={s.searchInput}
-              />
-            </div> */}
           </div>
 
           <div style={s.sectionRow}>
@@ -306,26 +254,23 @@ export function Dashboard() {
           </div>
 
           <div style={s.nodeList}>
-            {filteredNodes.map((node, i) => {
+            {filteredNodes.map((node) => {
               const unread = unreadCount(node.endpoint_id);
               const secs = seenSeconds[node.endpoint_id] ?? 0;
               const seen = formatSeen(secs);
-              const color = NODE_COLORS[getNodeColor(i)];
               const isActive = selectedNode === node.endpoint_id;
 
               return (
                 <div
                   key={node.endpoint_id}
-                  onClick={() => {
-                    setSelectedNode(node.endpoint_id);
-                  }}
+                  onClick={() => setSelectedNode(node.endpoint_id)}
                   style={{
                     ...s.nodeItem,
                     opacity: seen.stale ? 0.35 : 1,
-                    background: isActive ? "#ffffff" : "transparent",
+                    background: isActive ? "#f3f4f6" : "transparent",
                   }}
                 >
-                  <div style={{ ...s.nodeAv, ...color }}>
+                  <div style={s.nodeAv}>
                     {node.alias?.[0]?.toUpperCase() ??
                       node.endpoint_id.slice(0, 2).toUpperCase()}
                   </div>
@@ -354,11 +299,9 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* Chat pane */}
       <div style={s.chat}>
         {selectedNode ? (
           <>
-            {/* Header */}
             <div style={s.chatHeader}>
               <div style={s.chatLeft}>
                 {isMobile && (
@@ -370,7 +313,7 @@ export function Dashboard() {
                     <ArrowLeft size={18} />
                   </button>
                 )}
-                <div style={{ ...s.chatAv, ...selectedColor }}>
+                <div style={s.chatAv}>
                   {(
                     selectedNodeData?.alias?.[0] ?? selectedNode.slice(0, 2)
                   ).toUpperCase()}
@@ -384,13 +327,10 @@ export function Dashboard() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                 {!isMobile && (
-                  <>
-                    <span style={s.latency}>~12ms</span>
-                    <div style={s.connPill}>
-                      <span style={s.greenDot} />
-                      connected
-                    </div>
-                  </>
+                  <div style={s.connPill}>
+                    <span style={s.greenDot} />
+                    connected
+                  </div>
                 )}
                 {isMobile && (
                   <button
@@ -404,7 +344,6 @@ export function Dashboard() {
               </div>
             </div>
 
-            {/* Messages */}
             <div style={s.messages}>
               {chatMessages.length === 0 && (
                 <p style={s.noMessages}>No messages yet. Say hello!</p>
@@ -419,12 +358,7 @@ export function Dashboard() {
                       flexDirection: isOwn ? "row-reverse" : "row",
                     }}
                   >
-                    <div
-                      style={{
-                        ...s.msgAv,
-                        ...(isOwn ? NODE_COLORS.info : selectedColor),
-                      }}
-                    >
+                    <div style={s.msgAv}>
                       {isOwn
                         ? (identity?.alias?.[0]?.toUpperCase() ?? "M")
                         : (selectedNodeData?.alias?.[0]?.toUpperCase() ??
@@ -458,7 +392,6 @@ export function Dashboard() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div style={s.inputArea}>
               <input
                 value={messageInput}
@@ -473,7 +406,6 @@ export function Dashboard() {
             </div>
           </>
         ) : (
-          /* Empty state */
           <div style={s.emptyState}>
             <div style={s.emptyGraphic}>
               <QrCode size={isMobile ? 40 : 32} color="#6b7280" />
@@ -491,7 +423,6 @@ export function Dashboard() {
         )}
       </div>
 
-      {/* Mobile menu button when no chat selected */}
       {isMobile && !selectedNode && (
         <button style={s.mobileMenuBtn} onClick={() => setSidebarOpen(true)}>
           <Menu size={20} />
@@ -500,8 +431,6 @@ export function Dashboard() {
     </div>
   );
 }
-
-// ── Styles ────────────────────────────────────────────────────────────────────
 
 const s: Record<string, React.CSSProperties> = {
   app: {
@@ -512,8 +441,6 @@ const s: Record<string, React.CSSProperties> = {
     background: "#ffffff",
     position: "relative",
   },
-
-  // Mobile overlay
   mobileOverlay: {
     position: "fixed",
     top: 0,
@@ -523,7 +450,6 @@ const s: Record<string, React.CSSProperties> = {
     background: "rgba(0,0,0,0.5)",
     zIndex: 998,
   },
-
   mobileSidebar: {
     position: "fixed",
     top: 0,
@@ -537,7 +463,6 @@ const s: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     boxShadow: "0 0 20px rgba(0,0,0,0.15)",
   },
-
   mobileMenuBtn: {
     position: "fixed",
     bottom: 20,
@@ -555,7 +480,6 @@ const s: Record<string, React.CSSProperties> = {
     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
     zIndex: 100,
   },
-
   menuBtn: {
     background: "none",
     border: "none",
@@ -567,8 +491,6 @@ const s: Record<string, React.CSSProperties> = {
     padding: 4,
     marginRight: 4,
   },
-
-  // Sidebar
   sidebar: {
     width: 280,
     minWidth: 280,
@@ -585,7 +507,6 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     gap: 10,
-    marginBottom: 14,
   },
   avatar: {
     width: 36,
@@ -597,6 +518,8 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 600,
     flexShrink: 0,
+    background: "#f3f4f6",
+    color: "#111827",
   },
   meName: {
     fontSize: 14,
@@ -621,27 +544,6 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     color: "#6b7280",
     flexShrink: 0,
-  },
-  searchWrap: {
-    position: "relative",
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 10,
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "#9ca3af",
-    pointerEvents: "none",
-  },
-  searchInput: {
-    width: "100%",
-    padding: "8px 10px 8px 34px",
-    fontSize: 13,
-    background: "#ffffff",
-    border: "0.5px solid #e5e7eb",
-    borderRadius: 8,
-    color: "#111827",
-    outline: "none",
   },
   sectionRow: {
     display: "flex",
@@ -699,6 +601,8 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 600,
     flexShrink: 0,
+    background: "#f3f4f6",
+    color: "#111827",
   },
   nodeInfo: {
     flex: 1,
@@ -725,8 +629,6 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 10,
     flexShrink: 0,
   },
-
-  // Chat pane
   chat: {
     flex: 1,
     display: "flex",
@@ -758,6 +660,8 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 13,
     fontWeight: 600,
     flexShrink: 0,
+    background: "#f3f4f6",
+    color: "#111827",
   },
   chatName: {
     fontSize: 14,
@@ -767,15 +671,6 @@ const s: Record<string, React.CSSProperties> = {
   chatSub: {
     fontSize: 11,
     color: "#9ca3af",
-    fontFamily: "monospace",
-  },
-  latency: {
-    fontSize: 11,
-    color: "#9ca3af",
-    background: "#f9fafb",
-    border: "0.5px solid #e5e7eb",
-    padding: "3px 8px",
-    borderRadius: 6,
     fontFamily: "monospace",
   },
   connPill: {
@@ -819,6 +714,8 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     flexShrink: 0,
     marginTop: 2,
+    background: "#f3f4f6",
+    color: "#111827",
   },
   bubble: {
     padding: "10px 14px",
@@ -880,8 +777,6 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     flexShrink: 0,
   },
-
-  // Empty state
   emptyState: {
     flex: 1,
     display: "flex",
