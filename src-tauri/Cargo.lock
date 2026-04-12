@@ -3504,7 +3504,7 @@ dependencies = [
 [[package]]
 name = "p2p-node"
 version = "0.1.0"
-source = "git+https://github.com/korir248/p2p_node.git?branch=main#c5be34e8fade41940f94f43620200ea0f5de06eb"
+source = "git+https://github.com/korir248/p2p_node.git?branch=main#85d4e23626c5bb213c04ed67b33674cb1ce58d95"
 dependencies = [
  "anyhow",
  "futures",

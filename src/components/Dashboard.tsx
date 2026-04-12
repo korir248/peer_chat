@@ -2,14 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import {
   Send,
   QrCode,
-  Check,
-  CheckCheck,
+  // Check,
+  // CheckCheck,
   Menu,
   ArrowLeft,
   X,
 } from "lucide-react";
 import { useP2P } from "../hooks/useP2P";
 import { QRModal } from "./QRModal";
+import { Node } from "../types";
 
 function formatSeen(seconds: number): {
   label: string;
@@ -41,7 +42,7 @@ function truncate(id: string) {
 export function Dashboard() {
   const { identity, nodes, messages, sendMessage, getNodeId } = useP2P();
 
-  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [messageInput, setMessageInput] = useState("");
   const [searchTerm] = useState("");
   const [showQR, setShowQR] = useState(false);
@@ -95,7 +96,7 @@ export function Dashboard() {
 
   const handleSend = async () => {
     if (!messageInput.trim() || !selectedNode) return;
-    await sendMessage(messageInput.trim(), selectedNode, nodeId);
+    await sendMessage(messageInput.trim(), selectedNode.endpoint_id, nodeId);
     setMessageInput("");
   };
 
@@ -112,14 +113,14 @@ export function Dashboard() {
 
   const chatMessages = messages.filter(
     (m) =>
-      (m.from === selectedNode && m.to === nodeId) ||
-      (m.to === selectedNode && m.from === nodeId),
+      (m.from === selectedNode?.endpoint_id && m.to === nodeId) ||
+      (m.to === selectedNode?.endpoint_id && m.from === nodeId),
   );
 
   const unreadCount = (nid: string) =>
-    messages.filter((m) => m.from === nid && !m.read).length;
+    messages.filter((m) => m.from === nid).length;
 
-  const selectedNodeData = nodes.find((n) => n.endpoint_id === selectedNode);
+  const selectedNodeData = nodes.find((n) => n.endpoint_id === selectedNode?.endpoint_id);
 
   if (isMobile && sidebarOpen) {
     return (
@@ -170,7 +171,7 @@ export function Dashboard() {
                 <div
                   key={node.endpoint_id}
                   onClick={() => {
-                    setSelectedNode(node.endpoint_id);
+                    setSelectedNode(node);
                     setSidebarOpen(false);
                   }}
                   style={{
@@ -258,12 +259,12 @@ export function Dashboard() {
               const unread = unreadCount(node.endpoint_id);
               const secs = seenSeconds[node.endpoint_id] ?? 0;
               const seen = formatSeen(secs);
-              const isActive = selectedNode === node.endpoint_id;
+              const isActive = selectedNode?.endpoint_id === node.endpoint_id;
 
               return (
                 <div
                   key={node.endpoint_id}
-                  onClick={() => setSelectedNode(node.endpoint_id)}
+                  onClick={() => setSelectedNode(node)}
                   style={{
                     ...s.nodeItem,
                     opacity: seen.stale ? 0.35 : 1,
@@ -315,14 +316,18 @@ export function Dashboard() {
                 )}
                 <div style={s.chatAv}>
                   {(
-                    selectedNodeData?.alias?.[0] ?? selectedNode.slice(0, 2)
+                    selectedNodeData?.alias?.[0] ??
+                    selectedNode?.endpoint_id.slice(0, 2)
                   ).toUpperCase()}
                 </div>
                 <div>
                   <div style={s.chatName}>
-                    {selectedNodeData?.alias ?? truncate(selectedNode)}
+                    {selectedNodeData?.alias ??
+                      truncate(selectedNode?.endpoint_id)}
                   </div>
-                  <div style={s.chatSub}>{truncate(selectedNode)}</div>
+                  <div style={s.chatSub}>
+                    {truncate(selectedNode?.endpoint_id)}
+                  </div>
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
@@ -355,15 +360,9 @@ export function Dashboard() {
                     key={i}
                     style={{
                       ...s.msgRow,
-                      flexDirection: isOwn ? "row-reverse" : "row",
+                      justifyContent: isOwn ? "flex-end" : "flex-start",
                     }}
                   >
-                    <div style={s.msgAv}>
-                      {isOwn
-                        ? (identity?.alias?.[0]?.toUpperCase() ?? "M")
-                        : (selectedNodeData?.alias?.[0]?.toUpperCase() ??
-                          selectedNode.slice(0, 2).toUpperCase())}
-                    </div>
                     <div style={{ maxWidth: isMobile ? "85%" : "70%" }}>
                       <div style={isOwn ? s.bubbleOwn : s.bubble}>
                         {msg.content}
@@ -378,12 +377,6 @@ export function Dashboard() {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
-                        {isOwn &&
-                          (msg.read ? (
-                            <CheckCheck size={11} />
-                          ) : (
-                            <Check size={11} />
-                          ))}
                       </div>
                     </div>
                   </div>
@@ -397,7 +390,7 @@ export function Dashboard() {
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder={`Message ${selectedNodeData?.alias ?? truncate(selectedNode)}…`}
+                placeholder={`Message ${selectedNodeData?.alias ?? truncate(selectedNode?.endpoint_id)}…`}
                 style={s.msgInput}
               />
               <button onClick={handleSend} style={s.sendBtn}>
@@ -700,7 +693,6 @@ const s: Record<string, React.CSSProperties> = {
   },
   msgRow: {
     display: "flex",
-    gap: 8,
     marginBottom: 2,
   },
   msgAv: {

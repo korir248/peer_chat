@@ -10,14 +10,11 @@ export function useP2P() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
-  // Load identity on mount
   useEffect(() => {
     const init = async () => {
       try {
         const saved = await invoke<Identity | null>("load_identity");
-        if (saved) {
-          setIdentity(saved);
-        }
+        if (saved) setIdentity(saved);
       } catch (e) {
         console.error("Failed to load identity:", e);
       } finally {
@@ -27,41 +24,20 @@ export function useP2P() {
     init();
   }, []);
 
-  // Setup listeners when identity exists
   useEffect(() => {
     if (!identity) return;
-    console.log("Identity loaded:", identity);
 
-    listen("message_received", (event) => {
-      console.log(
-        "🔔 MESSAGE RECEIVED EVENT FIRED:",
-        event.event,
-        event.payload,
-      );
-    });
-
-    // Listen for messages
     const unlistenMsg = listen<Message>("message_received", (e) => {
-      setMessages((prev) => {
-        const updated = [...prev, { ...e.payload }];
-        return updated;
-      });
+      setMessages((prev) => [...prev, e.payload]);
     });
 
-    // Listen for deep links
     const setupDeepLink = async () => {
       return await onOpenUrl(async (url) => {
         await connectToNode(url as any as string);
-
-        // if (url.startsWith("medic://connect/")) {
-        //   const nodeId = url.replace("medic-p2p://connect/", "");
-        //
-        // }
       });
     };
     const deepLinkPromise = setupDeepLink();
 
-    // Refresh nodes periodically
     refreshNodes();
     const interval = setInterval(refreshNodes, 5000);
 
@@ -81,6 +57,8 @@ export function useP2P() {
   const refreshNodes = async () => {
     try {
       const discovered = await invoke<Node[]>("get_nodes");
+      console.log("nodes:", discovered);
+
       setNodes(discovered);
     } catch (e) {
       console.error("Failed to get nodes:", e);
@@ -94,7 +72,9 @@ export function useP2P() {
   const sendMessage = async (content: string, to: string, from: string) => {
     try {
       await invoke<Message>("send_message", { content, to, from });
-    } catch (error) {}
+    } catch (e) {
+      console.error("Failed to send message:", e);
+    }
   };
 
   const getNodeId = (): string => {

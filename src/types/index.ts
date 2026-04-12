@@ -3,7 +3,6 @@ export interface Message {
   from: string;
   to: string;
   timestamp: number;
-  read?: boolean;
 }
 
 export interface Node {
