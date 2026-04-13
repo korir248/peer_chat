@@ -68,7 +68,7 @@ export function Onboarding({ onSubmit }: Props) {
               marginBottom: 20,
             }}
           >
-            P2P
+            pC
           </div>
           <h1
             style={{

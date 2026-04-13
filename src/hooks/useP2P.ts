@@ -8,6 +8,7 @@ export function useP2P() {
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [nodes, setNodes] = useState<Node[]>([]);
+  const [globalNodes, setGlobalNodes] = useState<Node[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
@@ -56,8 +57,12 @@ export function useP2P() {
 
   const refreshNodes = async () => {
     try {
-      const discovered = await invoke<Node[]>("get_nodes");
+      const discovered = await invoke<Node[]>("get_local_nodes");
       console.log("nodes:", discovered);
+
+      const global = await invoke<Node[]>("get_global_nodes");
+      console.log("global nodes:", global);
+      setGlobalNodes(global);
 
       setNodes(discovered);
     } catch (e) {
@@ -65,8 +70,8 @@ export function useP2P() {
     }
   };
 
-  const connectToNode = async (nodeId: string) => {
-    await invoke("send_hello", { nodeId });
+  const connectToNode = async (key: string) => {
+    await invoke("connect_by_public_key", { key });
   };
 
   const sendMessage = async (content: string, to: string, from: string) => {
@@ -85,6 +90,7 @@ export function useP2P() {
     identity,
     isLoading,
     nodes,
+    globalNodes,
     messages,
     createIdentity,
     refreshNodes,

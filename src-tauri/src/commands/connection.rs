@@ -41,6 +41,25 @@ pub async fn save_identity(
 }
 
 #[tauri::command]
-pub async fn get_nodes(state: tauri::State<'_, State>) -> Result<Vec<Node>, String> {
-    Ok(state.node.get_nodes().await)
+pub async fn get_local_nodes(state: tauri::State<'_, State>) -> Result<Vec<Node>, String> {
+    Ok(state.node.get_local_nodes().await)
+}
+
+#[tauri::command]
+pub async fn get_global_nodes(state: tauri::State<'_, State>) -> Result<Vec<Node>, String> {
+    Ok(state.node.get_global_nodes().await)
+}
+
+#[tauri::command]
+pub async fn connect_by_public_key(
+    state: tauri::State<'_, State>,
+    key: String,
+) -> Result<(), String> {
+    state
+        .node
+        .connect_by_public_key(&key)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
 }

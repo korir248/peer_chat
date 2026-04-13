@@ -3,7 +3,8 @@ use std::sync::Arc;
 mod commands;
 
 use commands::connection::{
-    generate_connection_url, get_node_id, get_nodes, load_identity, save_identity,
+    connect_by_public_key, generate_connection_url, get_global_nodes, get_local_nodes, get_node_id,
+    load_identity, save_identity,
 };
 use commands::message::send_message;
 
@@ -17,10 +18,12 @@ pub fn handlers() -> impl Fn(tauri::ipc::Invoke) -> bool {
     tauri::generate_handler![
         get_node_id,
         send_message,
-        get_nodes,
+        get_local_nodes,
+        get_global_nodes,
         generate_connection_url,
         load_identity,
-        save_identity
+        save_identity,
+        connect_by_public_key
     ]
 }
 
