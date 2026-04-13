@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Send, QrCode, ArrowLeft, Smile } from "lucide-react";
-import { Node, Identity, Message } from "../types";
+import { Node as PNode, Identity, Message } from "../types";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 
 function truncate(id: string) {
@@ -8,8 +8,8 @@ function truncate(id: string) {
 }
 
 interface Props {
-  selectedNode: Node;
-  selectedNodeData: Node | undefined;
+  selectedNode: PNode;
+  selectedNodeData: PNode | undefined;
   identity: Identity | null;
   nodeId: string;
   messages: Message[];
@@ -45,7 +45,7 @@ export function ChatPane({
   useEffect(() => {
     if (!showPicker) return;
     const handler = (e: MouseEvent) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+      if (pickerRef.current && !pickerRef.current.contains(new Node)) {
         setShowPicker(false);
       }
     };
