@@ -13,7 +13,6 @@ export function Dashboard() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [messageInput, setMessageInput] = useState("");
   const [showQR, setShowQR] = useState(false);
-  const [seenSeconds, setSeenSeconds] = useState<Record<string, number>>({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [mode, setMode] = useState<"nearby" | "global">("nearby");
@@ -29,29 +28,6 @@ export function Dashboard() {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSeenSeconds((prev) => {
-        const next = { ...prev };
-        nodes.forEach((n) => {
-          next[n.endpoint_id] = (next[n.endpoint_id] ?? 0) + 1;
-        });
-        return next;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [nodes]);
-
-  useEffect(() => {
-    setSeenSeconds((prev) => {
-      const next = { ...prev };
-      nodes.forEach((n) => {
-        if (!(n.endpoint_id in next)) next[n.endpoint_id] = 0;
-      });
-      return next;
-    });
-  }, [nodes]);
 
   const handleSend = async () => {
     if (!messageInput.trim() || !selectedNode) return;
@@ -106,7 +82,6 @@ export function Dashboard() {
           nodes={nodes}
           globalNodes={globalNodes}
           selectedNode={selectedNode}
-          seenSeconds={seenSeconds}
           unreadCount={unreadCount}
           onSelect={handleSelect}
           onShowQR={() => setShowQR(true)}

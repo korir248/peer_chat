@@ -8,7 +8,6 @@ interface Props {
   nodes: Node[];
   globalNodes: Node[];
   selectedNode: Node | null;
-  seenSeconds: Record<string, number>;
   unreadCount: (id: string) => number;
   onSelect: (node: Node) => void;
 }
@@ -18,7 +17,6 @@ export function NodeList({
   nodes,
   globalNodes,
   selectedNode,
-  seenSeconds,
   unreadCount,
   onSelect,
 }: Props) {
@@ -67,7 +65,6 @@ export function NodeList({
             node={node}
             isActive={selectedNode?.endpoint_id === node.endpoint_id}
             unread={unreadCount(node.endpoint_id)}
-            seenSeconds={seenSeconds[node.endpoint_id] ?? 0}
             onClick={() => onSelect(node)}
           />
         ))}

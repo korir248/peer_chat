@@ -44,7 +44,7 @@ export function ChatPane({
   // Close picker on outside click
   useEffect(() => {
     if (!showPicker) return;
-    const handler = (e: MouseEvent) => {
+    const handler = () => {
       if (pickerRef.current && !pickerRef.current.contains(new Node)) {
         setShowPicker(false);
       }

@@ -14,7 +14,6 @@ interface Props {
   nodes: Node[];
   globalNodes: Node[];
   selectedNode: Node | null;
-  seenSeconds: Record<string, number>;
   unreadCount: (id: string) => number;
   onSelect: (node: Node) => void;
   onShowQR: () => void;
@@ -30,7 +29,6 @@ export function Sidebar({
   nodes,
   globalNodes,
   selectedNode,
-  seenSeconds,
   unreadCount,
   onSelect,
   onShowQR,
@@ -101,7 +99,6 @@ export function Sidebar({
         nodes={nodes}
         globalNodes={globalNodes}
         selectedNode={selectedNode}
-        seenSeconds={seenSeconds}
         unreadCount={unreadCount}
         onSelect={onSelect}
       />
