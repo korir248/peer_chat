@@ -1,0 +1,73 @@
+name: Android Build
+
+on:
+#   push:
+#     tags:
+#       - 'v*'
+  workflow_dispatch:  
+  
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install frontend deps
+        run: bun install
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-34
+            build-tools;34.0.0
+            ndk;25.2.9519653
+
+      - name: Add Android Rust targets
+        run: |
+          rustup target add aarch64-linux-android
+          rustup target add armv7-linux-androideabi
+          rustup target add x86_64-linux-android
+
+      - name: Configure private repo access
+        env:
+          NODE_TOKEN: ${{ secrets.NODE_TOKEN }}
+        run: |
+          git config --global url."https://${{ secrets.NODE_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          mkdir -p ~/.cargo
+          echo "[net]" >> ~/.cargo/config.toml
+          echo "git-fetch-with-cli = true" >> ~/.cargo/config.toml
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli
+
+      - name: Initialize Android project
+        run: cargo tauri android init
+
+      - name: Build Android APK
+        run: cargo tauri android build --apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-${{ github.ref_name }}
+          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          retention-days: 30  # Keep for 30 days
