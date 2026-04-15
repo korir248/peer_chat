@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Send, QrCode, ArrowLeft, Smile } from "lucide-react";
 import { Node as PNode, Identity, Message } from "../types";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
+import { useP2P } from "../hooks/useP2P";
 
 function truncate(id: string) {
   return `${id.slice(0, 6)}…${id.slice(-4)}`;
@@ -36,6 +37,7 @@ export function ChatPane({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const [showPicker, setShowPicker] = useState(false);
+  let { nodes } = useP2P();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +47,7 @@ export function ChatPane({
   useEffect(() => {
     if (!showPicker) return;
     const handler = () => {
-      if (pickerRef.current && !pickerRef.current.contains(new Node)) {
+      if (pickerRef.current && !pickerRef.current.contains(new Node())) {
         setShowPicker(false);
       }
     };
@@ -83,10 +85,19 @@ export function ChatPane({
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
           {!isMobile && (
-            <div style={connPill}>
-              <span style={greenDot} />
-              connected
-            </div>
+            <>
+              {nodes.includes(selectedNode) ? (
+                <div style={connPill}>
+                  <span style={dot} />
+                  connected
+                </div>
+              ) : (
+                <div style={connPillRed}>
+                  <span style={dot} />
+                  disconnected
+                </div>
+              )}
+            </>
           )}
           {isMobile && (
             <button style={iconBtn} onClick={onShowQR} title="Show QR">
@@ -249,7 +260,19 @@ const connPill: React.CSSProperties = {
   borderRadius: 20,
 };
 
-const greenDot: React.CSSProperties = {
+const connPillRed: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 11,
+  fontWeight: 500,
+  color: "#ef4444",
+  background: "#fee2e2",
+  padding: "4px 10px",
+  borderRadius: 20,
+};
+
+const dot: React.CSSProperties = {
   width: 6,
   height: 6,
   borderRadius: "50%",

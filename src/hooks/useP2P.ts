@@ -59,6 +59,8 @@ export function useP2P() {
     try {
       const discovered = await invoke<Node[]>("get_local_nodes");
       console.log("nodes:", discovered);
+      const discovered1 = await invoke<Node[]>("get_local_nodes1");
+      console.log("nodes1:", discovered1);
 
       const global = await invoke<Node[]>("get_global_nodes");
       console.log("global nodes:", global);
