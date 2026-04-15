@@ -1,17 +1,23 @@
 name: Android Build
 
 on:
-#   push:
-#     tags:
-#       - 'v*'
-  workflow_dispatch:  
-  
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., v1.0.0)'
+        required: true
+        type: string
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -65,9 +71,16 @@ jobs:
       - name: Build Android APK
         run: cargo tauri android build --apk
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      - name: Create draft release
+        id: create_release
+        uses: softprops/action-gh-release@v1
         with:
-          name: android-app-${{ github.ref_name }}
-          path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-          retention-days: 30  # Keep for 30 days
+          name: "peerChat - ${{ github.event.inputs.version }}"
+          tag_name: "android-${{ github.event.inputs.version }}-${{ github.run_id }}"
+          draft: true  
+          prerelease: true
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
