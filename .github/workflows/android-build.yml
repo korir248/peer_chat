@@ -40,18 +40,32 @@ jobs:
           java-version: '17'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platforms;android-34
-            build-tools;34.0.0
-            ndk;25.2.9519653
+        run: |
+            # Download and install Android command line tools
+            wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk
+            mkdir -p $HOME/android-sdk/cmdline-tools
+            mv $HOME/android-sdk/cmdline-tools $HOME/android-sdk/cmdline-tools/latest || true
+            mv $HOME/android-sdk/cmdline-tools/latest $HOME/android-sdk/cmdline-tools/latest || true
+            
+            # Set paths
+            echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+            echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+            echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+            
+            # Accept licenses non-interactively
+            yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1
+            
+            # Install required packages
+            $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.2.9519653" > /dev/null 2>&1
+            
+            echo "Android SDK setup complete"
 
       - name: Add Android Rust targets
         run: |
-          rustup target add aarch64-linux-android
-          rustup target add armv7-linux-androideabi
-          rustup target add x86_64-linux-android
+            rustup target add aarch64-linux-android
+            rustup target add armv7-linux-androideabi
+            rustup target add x86_64-linux-android
 
       - name: Configure private repo access
         env:
