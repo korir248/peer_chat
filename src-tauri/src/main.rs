@@ -3,7 +3,6 @@
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let node = p2p_node::P2PNode::new().await?;
-    peerchat_lib::run(node);
+    peerchat_lib::run();
     Ok(())
 }
