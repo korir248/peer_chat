@@ -33,11 +33,9 @@ pub fn handlers() -> impl Fn(tauri::ipc::Invoke) -> bool {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let rt = tokio::runtime::Runtime::new().expect("Failed to create runtime");
-
     let (send, mut recv) = mpsc::unbounded_channel();
 
-    let node = rt.block_on(async {
+    let node = tauri::async_runtime::block_on(async {
         p2p_node::P2PNode::new(send)
             .await
             .expect("Failed to create node")

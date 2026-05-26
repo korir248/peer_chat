@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{Message, State};
 
 #[tauri::command]
@@ -17,6 +19,21 @@ pub async fn send_message(
     state
         .node
         .send_message(node_id, message)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn start_media_stream(
+    state: tauri::State<'_, State>,
+    peer_id: String,
+    file_path: String,
+) -> Result<(), String> {
+    state
+        .node
+        .stream_media(&peer_id, PathBuf::from(file_path))
         .await
         .map_err(|e| e.to_string())?;
 
